@@ -1,0 +1,139 @@
+@model IEnumerable<_24_NguyenManhCuong_Assignment02_FrontEnd.Models.NewsArticleViewModel>
+@{
+    ViewData["Title"] = "News Portal";
+    var categories = ViewBag.Categories as List<_24_NguyenManhCuong_Assignment02_FrontEnd.Models.CategoryViewModel> ?? new();
+    short? currentCat = ViewBag.CurrentCategory as short?;
+}
+
+<div class="py-4 text-center border-bottom mb-4">
+    <h1 class="display-6 fw-bold text-dark">University News & Announcements</h1>
+    <p class="text-muted lead fs-6">Stay informed with the latest updates from FUNewsManagementSystem</p>
+</div>
+
+<!-- Search & Filter bar -->
+<div class="row g-3 mb-4 align-items-center">
+    <div class="col-md-7">
+        <form method="get" asp-action="Index" class="d-flex gap-2">
+            @if (currentCat.HasValue)
+            {
+                <input type="hidden" name="categoryId" value="@currentCat" />
+            }
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" name="search" value="@ViewBag.CurrentSearch" class="form-control" placeholder="Search by title or headline..." />
+            </div>
+            <button type="submit" class="btn btn-primary px-3">Search</button>
+            @if (!string.IsNullOrEmpty(ViewBag.CurrentSearch) || currentCat.HasValue)
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary">Reset</a>
+            }
+        </form>
+    </div>
+    <div class="col-md-5 text-md-end">
+        @if (User.IsInRole("Staff"))
+        {
+            <a asp-action="Create" class="btn btn-success shadow-sm">
+                <i class="bi bi-pencil-square me-1"></i>Publish New Article
+            </a>
+        }
+    </div>
+</div>
+
+<!-- Category Pills Filter -->
+<div class="mb-4 d-flex flex-wrap gap-2 align-items-center">
+    <span class="small text-muted fw-semibold me-2"><i class="bi bi-funnel me-1"></i>Filter by Category:</span>
+    <a asp-action="Index" asp-route-search="@ViewBag.CurrentSearch" 
+       class="btn btn-sm rounded-pill @(!currentCat.HasValue ? "btn-dark" : "btn-outline-secondary")">
+        All Categories
+    </a>
+    @foreach (var cat in categories.Where(c => c.IsActive == true))
+    {
+        <a asp-action="Index" asp-route-categoryId="@cat.CategoryID" asp-route-search="@ViewBag.CurrentSearch"
+           class="btn btn-sm rounded-pill @(currentCat == cat.CategoryID ? "btn-dark" : "btn-outline-secondary")">
+            @cat.CategoryName
+        </a>
+    }
+</div>
+
+<!-- News Cards Grid -->
+@if (Model != null && Model.Any())
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach (var article in Model)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0 rounded-4 transition-all">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            @if (article.Category != null)
+                            {
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small">
+                                    @article.Category.CategoryName
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary-subtle text-secondary small">General</span>
+                            }
+                            <small class="text-muted">
+                                <i class="bi bi-clock me-1"></i>@(article.CreatedDate?.ToString("MMM dd, yyyy") ?? "N/A")
+                            </small>
+                        </div>
+
+                        <h5 class="card-title fw-bold text-dark mt-2 mb-2">
+                            <a asp-action="Details" asp-route-id="@article.NewsArticleID" class="text-decoration-none text-dark hover-primary">
+                                @article.Headline
+                            </a>
+                        </h5>
+
+                        @if (!string.IsNullOrEmpty(article.NewsTitle))
+                        {
+                            <h6 class="card-subtitle text-muted small mb-3">@article.NewsTitle</h6>
+                        }
+
+                        <p class="card-text text-secondary small mb-4 flex-grow-1">
+                            @if (!string.IsNullOrEmpty(article.NewsContent))
+                            {
+                                @(article.NewsContent.Length > 160 ? article.NewsContent[..160] + "..." : article.NewsContent)
+                            }
+                        </p>
+
+                        <!-- Tags badges -->
+                        @if (article.NewsTags != null && article.NewsTags.Any())
+                        {
+                            <div class="mb-3 d-flex flex-wrap gap-1">
+                                @foreach (var nt in article.NewsTags)
+                                {
+                                    <span class="badge bg-light text-secondary border small">#@(nt.Tag?.TagName ?? nt.TagID.ToString())</span>
+                                }
+                            </div>
+                        }
+
+                        <div class="pt-3 border-top d-flex justify-content-between align-items-center mt-auto">
+                            <span class="small text-muted">
+                                <i class="bi bi-person me-1"></i>@(article.CreatedBy?.AccountName ?? "Author")
+                            </span>
+                            <a asp-action="Details" asp-route-id="@article.NewsArticleID" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                Read Article <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="card p-5 text-center border-0 shadow-sm rounded-4 my-4">
+        <i class="bi bi-newspaper fs-1 text-muted mb-3"></i>
+        <h4 class="fw-bold">No News Articles Found</h4>
+        <p class="text-muted small">There are currently no published news articles matching your criteria.</p>
+        @if (!string.IsNullOrEmpty(ViewBag.CurrentSearch) || currentCat.HasValue)
+        {
+            <div>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Clear Filters</a>
+            </div>
+        }
+    </div>
+}

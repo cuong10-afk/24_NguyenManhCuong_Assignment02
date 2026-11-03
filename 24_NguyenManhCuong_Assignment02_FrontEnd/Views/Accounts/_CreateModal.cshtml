@@ -1,0 +1,67 @@
+@model _24_NguyenManhCuong_Assignment02_FrontEnd.Models.SystemAccountViewModel
+
+<div class="modal-header border-0 pb-0">
+    <div class="d-flex align-items-center gap-3">
+        <div class="bg-primary bg-opacity-10 rounded-3 p-2">
+            <i class="bi bi-person-plus-fill text-primary fs-4"></i>
+        </div>
+        <div>
+            <h5 class="modal-title fw-bold mb-0">Create New Account</h5>
+            <p class="text-muted small mb-0">Add a new Staff or Lecturer account</p>
+        </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<form id="createAccountForm" asp-action="CreateModal" method="post">
+    @Html.AntiForgeryToken()
+    <div class="modal-body px-4 py-3">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-3" role="alert"></div>
+
+        <div class="mb-3">
+            <label asp-for="AccountName" class="form-label small fw-semibold text-secondary"></label>
+            <div class="input-group">
+                <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                <input asp-for="AccountName" class="form-control" placeholder="e.g. Nguyen Van A" />
+            </div>
+            <span asp-validation-for="AccountName" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="AccountEmail" class="form-label small fw-semibold text-secondary"></label>
+            <div class="input-group">
+                <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
+                <input asp-for="AccountEmail" class="form-control" placeholder="name@domain.com" />
+            </div>
+            <span asp-validation-for="AccountEmail" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="AccountRole" class="form-label small fw-semibold text-secondary"></label>
+            <select asp-for="AccountRole" class="form-select">
+                <option value="">-- Select Role --</option>
+                <option value="1">Staff (Manages news &amp; categories)</option>
+                <option value="2">Lecturer (View-only)</option>
+            </select>
+            <span asp-validation-for="AccountRole" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="AccountPassword" class="form-label small fw-semibold text-secondary"></label>
+            <div class="input-group">
+                <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
+                <input asp-for="AccountPassword" type="password" class="form-control" placeholder="Enter password" />
+            </div>
+            <span asp-validation-for="AccountPassword" class="text-danger small"></span>
+        </div>
+    </div>
+
+    <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg me-1"></i>Cancel
+        </button>
+        <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-check-lg me-1"></i>Create Account
+        </button>
+    </div>
+</form>

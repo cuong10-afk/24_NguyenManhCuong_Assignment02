@@ -1,0 +1,101 @@
+@model _24_NguyenManhCuong_Assignment02_FrontEnd.Models.NewsArticleViewModel
+@{
+    var allTags = ViewBag.AllTags as List<_24_NguyenManhCuong_Assignment02_FrontEnd.Models.TagViewModel> ?? new();
+    var selectedTagIds = ViewBag.SelectedTagIds as List<int> ?? new();
+}
+
+<div class="modal-header border-0 pb-0">
+    <div class="d-flex align-items-center gap-3">
+        <div class="bg-primary bg-opacity-10 rounded-3 p-2">
+            <i class="bi bi-pencil-square text-primary fs-4"></i>
+        </div>
+        <div>
+            <h5 class="modal-title fw-bold mb-0">Create News Article</h5>
+            <p class="text-muted small mb-0">Publish or draft a new article</p>
+        </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<form id="createArticleForm" asp-action="CreateModal" method="post">
+    @Html.AntiForgeryToken()
+    <div class="modal-body px-4 py-3" style="max-height: 65vh; overflow-y: auto;">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-3" role="alert"></div>
+
+        <div class="row g-3">
+            <div class="col-md-5">
+                <label asp-for="NewsArticleID" class="form-label small fw-semibold text-secondary"></label>
+                <input asp-for="NewsArticleID" class="form-control form-control-sm font-monospace" />
+                <span asp-validation-for="NewsArticleID" class="text-danger small"></span>
+            </div>
+            <div class="col-md-7">
+                <label asp-for="CategoryID" class="form-label small fw-semibold text-secondary"></label>
+                <select asp-for="CategoryID" class="form-select form-select-sm" asp-items="ViewBag.CategoryID">
+                    <option value="">-- Select Category --</option>
+                </select>
+                <span asp-validation-for="CategoryID" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Headline" class="form-label small fw-semibold text-secondary"></label>
+                <input asp-for="Headline" class="form-control form-control-sm" placeholder="Compelling main headline..." />
+                <span asp-validation-for="Headline" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="NewsTitle" class="form-label small fw-semibold text-secondary"></label>
+                <input asp-for="NewsTitle" class="form-control form-control-sm" placeholder="Subtitle or secondary title (optional)" />
+                <span asp-validation-for="NewsTitle" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-8">
+                <label asp-for="NewsSource" class="form-label small fw-semibold text-secondary"></label>
+                <input asp-for="NewsSource" class="form-control form-control-sm" placeholder="e.g. FPT University Newsroom" />
+            </div>
+            <div class="col-md-4 d-flex align-items-center pt-2">
+                <div class="form-check form-switch">
+                    <input asp-for="NewsStatus" class="form-check-input" type="checkbox" id="createNewsStatus" checked />
+                    <label class="form-check-label small fw-semibold" for="createNewsStatus">Publish Now</label>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="NewsContent" class="form-label small fw-semibold text-secondary"></label>
+                <textarea asp-for="NewsContent" class="form-control form-control-sm" rows="5" placeholder="Full article body content..."></textarea>
+                <span asp-validation-for="NewsContent" class="text-danger small"></span>
+            </div>
+
+            <!-- Tags -->
+            <div class="col-12">
+                <label class="form-label small fw-semibold text-secondary d-block">Assign Tags</label>
+                <div class="d-flex flex-wrap gap-2 p-3 bg-light rounded-3 border">
+                    @if (allTags.Any())
+                    {
+                        foreach (var tag in allTags)
+                        {
+                            var isChecked = selectedTagIds.Contains(tag.TagID);
+                            <div class="form-check form-check-inline m-0">
+                                <input class="form-check-input" type="checkbox" name="SelectedTagIds"
+                                       value="@tag.TagID" id="ctag_@tag.TagID" @(isChecked ? "checked" : "") />
+                                <label class="form-check-label small" for="ctag_@tag.TagID">#@tag.TagName</label>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <span class="text-muted small">No tags available.</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg me-1"></i>Cancel
+        </button>
+        <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-send me-1"></i>Publish Article
+        </button>
+    </div>
+</form>

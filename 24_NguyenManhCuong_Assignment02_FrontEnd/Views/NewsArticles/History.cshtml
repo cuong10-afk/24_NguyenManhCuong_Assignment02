@@ -1,0 +1,246 @@
+@model IEnumerable<_24_NguyenManhCuong_Assignment02_FrontEnd.Models.NewsArticleViewModel>
+@{
+    ViewData["Title"] = "My Article History";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-clock-history text-primary me-2"></i>My Article History</h2>
+        <p class="text-muted small mb-0">Review and manage all news articles authored by you</p>
+    </div>
+    <button type="button" class="btn btn-primary shadow-sm" onclick="openCreateModal()">
+        <i class="bi bi-pencil-square me-1"></i>New Article
+    </button>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col" style="width: 100px;">ID</th>
+                    <th scope="col">Headline</th>
+                    <th scope="col">Category</th>
+                    <th scope="col">Created Date</th>
+                    <th scope="col">Modified Date</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" class="text-end" style="width: 160px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr id="article-row-@item.NewsArticleID">
+                            <td><span class="badge bg-secondary-subtle text-secondary">@item.NewsArticleID</span></td>
+                            <td class="fw-semibold">
+                                <a asp-action="Details" asp-route-id="@item.NewsArticleID" class="text-dark text-decoration-none">
+                                    @item.Headline
+                                </a>
+                            </td>
+                            <td>
+                                @if (item.Category != null)
+                                {
+                                    <span class="badge bg-light text-dark border">@item.Category.CategoryName</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">-</span>
+                                }
+                            </td>
+                            <td class="small text-muted">@(item.CreatedDate?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</td>
+                            <td class="small text-muted">@(item.ModifiedDate?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                            <td>
+                                @if (item.NewsStatus == true)
+                                {
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Published</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary-subtle text-secondary border">Draft</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@item.NewsArticleID" class="btn btn-outline-secondary btn-sm me-1" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <button class="btn btn-outline-primary btn-sm me-1" title="Edit"
+                                        onclick="openEditModal('@item.NewsArticleID')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm" title="Delete"
+                                        onclick="confirmDelete('@item.NewsArticleID', '@Html.Raw(item.Headline?.Replace("'", "\\'"))')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-clock-history fs-2 d-block mb-2"></i>
+                            You have not created any articles yet.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- === MODAL: Create Article === -->
+<div class="modal fade" id="createArticleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div id="createArticleModalContent"><!-- AJAX --></div>
+        </div>
+    </div>
+</div>
+
+<!-- === MODAL: Edit Article === -->
+<div class="modal fade" id="editArticleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div id="editArticleModalContent"><!-- AJAX --></div>
+        </div>
+    </div>
+</div>
+
+<!-- === MODAL: Delete Confirm === -->
+<div class="modal fade" id="deleteArticleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-danger bg-opacity-10 rounded-3 p-2">
+                        <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+                    </div>
+                    <h6 class="modal-title fw-bold mb-0">Confirm Delete</h6>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="mb-0 small">Delete article: <strong id="deleteArticleName"></strong>?</p>
+                <p class="small text-danger mt-1 mb-0">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteArticleForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger btn-sm px-3">
+                        <i class="bi bi-trash me-1"></i>Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function openCreateModal() {
+            fetch('@Url.Action("CreateModal", "NewsArticles")')
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById('createArticleModalContent').innerHTML = html;
+                    bindCreateForm();
+                    new bootstrap.Modal(document.getElementById('createArticleModal')).show();
+                });
+        }
+
+        function bindCreateForm() {
+            const form = document.getElementById('createArticleForm');
+            if (!form) return;
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                submitModalForm(form, 'createArticleModal', 'createArticleModalContent', bindCreateForm);
+            });
+        }
+
+        function openEditModal(id) {
+            fetch('@Url.Action("EditModal", "NewsArticles")/' + id)
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById('editArticleModalContent').innerHTML = html;
+                    bindEditForm(id);
+                    new bootstrap.Modal(document.getElementById('editArticleModal')).show();
+                });
+        }
+
+        function bindEditForm(id) {
+            const form = document.getElementById('editArticleForm');
+            if (!form) return;
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                submitModalForm(form, 'editArticleModal', 'editArticleModalContent', () => bindEditForm(id));
+            });
+        }
+
+        function confirmDelete(id, name) {
+            document.getElementById('deleteArticleName').textContent = name;
+            const form = document.getElementById('deleteArticleForm');
+            form.action = '@Url.Action("DeleteAjax", "NewsArticles")/' + id;
+            form.onsubmit = function (e) {
+                e.preventDefault();
+                const fd = new FormData(form);
+                fetch(form.action, { method: 'POST', body: fd })
+                    .then(r => r.json())
+                    .then(data => {
+                        bootstrap.Modal.getInstance(document.getElementById('deleteArticleModal')).hide();
+                        if (data.success) {
+                            showToast(data.message, 'success');
+                            setTimeout(() => location.reload(), 900);
+                        } else {
+                            showToast(data.message, 'danger');
+                        }
+                    });
+            };
+            new bootstrap.Modal(document.getElementById('deleteArticleModal')).show();
+        }
+
+        function submitModalForm(form, modalId, contentId, rebindFn) {
+            const fd = new FormData(form);
+            fetch(form.action, { method: 'POST', body: fd })
+                .then(r => {
+                    const ct = r.headers.get('content-type') || '';
+                    if (ct.includes('application/json')) return r.json().then(data => ({ type: 'json', data }));
+                    return r.text().then(html => ({ type: 'html', html }));
+                })
+                .then(result => {
+                    if (result.type === 'json') {
+                        if (result.data.success) {
+                            bootstrap.Modal.getInstance(document.getElementById(modalId)).hide();
+                            showToast(result.data.message, 'success');
+                            setTimeout(() => location.reload(), 900);
+                        } else {
+                            showToast(result.data.message || 'Operation failed.', 'danger');
+                        }
+                    } else {
+                        document.getElementById(contentId).innerHTML = result.html;
+                        rebindFn();
+                    }
+                });
+        }
+
+        function showToast(message, type) {
+            const id = 'toast-' + Date.now();
+            const html = `<div id="${id}" class="toast align-items-center text-bg-${type} border-0 show" role="alert" style="min-width:280px">
+                <div class="d-flex"><div class="toast-body fw-semibold">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`;
+            let c = document.getElementById('toastContainer');
+            if (!c) {
+                c = document.createElement('div');
+                c.id = 'toastContainer';
+                c.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                c.style.zIndex = '9999';
+                document.body.appendChild(c);
+            }
+            c.insertAdjacentHTML('beforeend', html);
+            setTimeout(() => document.getElementById(id)?.remove(), 4000);
+        }
+    </script>
+}

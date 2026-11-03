@@ -1,0 +1,83 @@
+@model _24_NguyenManhCuong_Assignment02_FrontEnd.Models.NewsArticleViewModel
+@{
+    ViewData["Title"] = Model.Headline;
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="mb-4">
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm rounded-pill">
+                <i class="bi bi-arrow-left me-1"></i>Back to News
+            </a>
+            @if (User.IsInRole("Staff"))
+            {
+                <a asp-action="Edit" asp-route-id="@Model.NewsArticleID" class="btn btn-primary btn-sm rounded-pill ms-2">
+                    <i class="bi bi-pencil me-1"></i>Edit Article
+                </a>
+            }
+        </div>
+
+        <article class="card shadow-sm border-0 rounded-4 overflow-hidden mb-5">
+            <div class="card-body p-4 p-md-5">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                    @if (Model.Category != null)
+                    {
+                        <span class="badge bg-primary px-3 py-2 rounded-pill">
+                            <i class="bi bi-folder2 me-1"></i>@Model.Category.CategoryName
+                        </span>
+                    }
+                    @if (Model.NewsStatus == true)
+                    {
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Published</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">Draft / Inactive</span>
+                    }
+                </div>
+
+                <h1 class="display-6 fw-bold mb-3">@Model.Headline</h1>
+
+                @if (!string.IsNullOrEmpty(Model.NewsTitle))
+                {
+                    <h5 class="text-secondary fw-normal mb-4">@Model.NewsTitle</h5>
+                }
+
+                <div class="p-3 bg-light rounded-3 mb-4 d-flex flex-wrap justify-content-between align-items-center small text-muted">
+                    <div>
+                        <i class="bi bi-person-fill text-primary me-1"></i>Author:
+                        <strong class="text-dark">@(Model.CreatedBy?.AccountName ?? "Staff Author")</strong>
+                    </div>
+                    <div>
+                        <i class="bi bi-calendar3 text-primary me-1"></i>Published:
+                        <strong class="text-dark">@(Model.CreatedDate?.ToString("MMMM dd, yyyy HH:mm") ?? "N/A")</strong>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.NewsSource))
+                    {
+                        <div>
+                            <i class="bi bi-link-45deg text-primary me-1"></i>Source:
+                            <span class="text-dark">@Model.NewsSource</span>
+                        </div>
+                    }
+                </div>
+
+                <div class="article-content fs-5 lh-base py-3 border-top border-bottom text-dark" style="white-space: pre-line;">
+                    @Model.NewsContent
+                </div>
+
+                @if (Model.NewsTags != null && Model.NewsTags.Any())
+                {
+                    <div class="mt-4">
+                        <span class="fw-semibold small text-muted me-2"><i class="bi bi-tags me-1"></i>Tags:</span>
+                        @foreach (var nt in Model.NewsTags)
+                        {
+                            <span class="badge bg-secondary-subtle text-secondary border px-3 py-2 rounded-pill me-1">
+                                #@(nt.Tag?.TagName ?? nt.TagID.ToString())
+                            </span>
+                        }
+                    </div>
+                }
+            </div>
+        </article>
+    </div>
+</div>

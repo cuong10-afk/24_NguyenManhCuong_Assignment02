@@ -1,0 +1,67 @@
+@model _24_NguyenManhCuong_Assignment02_FrontEnd.Models.SystemAccountViewModel
+
+<div class="modal-header border-0 pb-0">
+    <div class="d-flex align-items-center gap-3">
+        <div class="bg-warning bg-opacity-10 rounded-3 p-2">
+            <i class="bi bi-pencil-square text-warning fs-4"></i>
+        </div>
+        <div>
+            <h5 class="modal-title fw-bold mb-0">Edit Account #@Model.AccountID</h5>
+            <p class="text-muted small mb-0">Update account credentials and permissions</p>
+        </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<form id="editAccountForm" asp-action="EditModal" asp-route-id="@Model.AccountID" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="AccountID" />
+    <div class="modal-body px-4 py-3">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-3" role="alert"></div>
+
+        <div class="mb-3">
+            <label asp-for="AccountName" class="form-label small fw-semibold text-secondary"></label>
+            <div class="input-group">
+                <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                <input asp-for="AccountName" class="form-control" />
+            </div>
+            <span asp-validation-for="AccountName" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="AccountEmail" class="form-label small fw-semibold text-secondary"></label>
+            <div class="input-group">
+                <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
+                <input asp-for="AccountEmail" class="form-control" />
+            </div>
+            <span asp-validation-for="AccountEmail" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="AccountRole" class="form-label small fw-semibold text-secondary"></label>
+            <select asp-for="AccountRole" class="form-select">
+                <option value="1">Staff (Manages news &amp; categories)</option>
+                <option value="2">Lecturer (View-only)</option>
+            </select>
+            <span asp-validation-for="AccountRole" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="AccountPassword" class="form-label small fw-semibold text-secondary"></label>
+            <div class="input-group">
+                <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
+                <input asp-for="AccountPassword" type="text" class="form-control" />
+            </div>
+            <span asp-validation-for="AccountPassword" class="text-danger small"></span>
+        </div>
+    </div>
+
+    <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg me-1"></i>Cancel
+        </button>
+        <button type="submit" class="btn btn-warning px-4 text-dark">
+            <i class="bi bi-save me-1"></i>Save Changes
+        </button>
+    </div>
+</form>

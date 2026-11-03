@@ -1,0 +1,104 @@
+@model _24_NguyenManhCuong_Assignment02_FrontEnd.Models.NewsArticleViewModel
+@{
+    ViewData["Title"] = "Edit Article";
+    var allTags = ViewBag.AllTags as List<_24_NguyenManhCuong_Assignment02_FrontEnd.Models.TagViewModel> ?? new();
+    var selectedTagIds = ViewBag.SelectedTagIds as List<int> ?? Model.SelectedTagIds ?? new();
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                <h4 class="fw-bold mb-1">Edit News Article</h4>
+                <p class="text-muted small mb-0">ID: <code class="text-dark">@Model.NewsArticleID</code></p>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="NewsArticleID" />
+                    <input type="hidden" asp-for="CreatedByID" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold text-secondary">Article ID</label>
+                            <input value="@Model.NewsArticleID" class="form-control font-monospace bg-light" readonly />
+                        </div>
+
+                        <div class="col-md-8">
+                            <label asp-for="CategoryID" class="form-label small fw-semibold text-secondary"></label>
+                            <select asp-for="CategoryID" class="form-select" asp-items="ViewBag.CategoryID">
+                                <option value="">-- Select Category --</option>
+                            </select>
+                            <span asp-validation-for="CategoryID" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Headline" class="form-label small fw-semibold text-secondary"></label>
+                            <input asp-for="Headline" class="form-control" />
+                            <span asp-validation-for="Headline" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="NewsTitle" class="form-label small fw-semibold text-secondary"></label>
+                            <input asp-for="NewsTitle" class="form-control" />
+                            <span asp-validation-for="NewsTitle" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-8">
+                            <label asp-for="NewsSource" class="form-label small fw-semibold text-secondary"></label>
+                            <input asp-for="NewsSource" class="form-control" />
+                            <span asp-validation-for="NewsSource" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-4 d-flex align-items-center pt-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="NewsStatus" class="form-check-input" type="checkbox" id="newsStatusSwitch" />
+                                <label class="form-check-label fw-semibold small" for="newsStatusSwitch">Article is Published</label>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="NewsContent" class="form-label small fw-semibold text-secondary"></label>
+                            <textarea asp-for="NewsContent" class="form-control" rows="8"></textarea>
+                            <span asp-validation-for="NewsContent" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Tags Multi-selection -->
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-secondary d-block">Assign Tags</label>
+                            <div class="d-flex flex-wrap gap-2 p-3 bg-light rounded-3 border">
+                                @if (allTags.Any())
+                                {
+                                    @foreach (var tag in allTags)
+                                    {
+                                        var isChecked = selectedTagIds.Contains(tag.TagID);
+                                        <div class="form-check form-check-inline m-0">
+                                            <input class="form-check-input" type="checkbox" name="SelectedTagIds" value="@tag.TagID" id="tag_@tag.TagID" @(isChecked ? "checked" : "") />
+                                            <label class="form-check-label small" for="tag_@tag.TagID">#@tag.TagName</label>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">No tags available.</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-4 text-end">
+                            <a asp-action="Manage" class="btn btn-outline-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-save me-1"></i>Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

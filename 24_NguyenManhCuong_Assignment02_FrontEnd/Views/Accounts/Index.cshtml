@@ -1,0 +1,265 @@
+@model IEnumerable<_24_NguyenManhCuong_Assignment02_FrontEnd.Models.SystemAccountViewModel>
+@{
+    ViewData["Title"] = "Account Management";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-people-fill text-primary me-2"></i>Account Management</h2>
+        <p class="text-muted small mb-0">Manage system user accounts (Staff &amp; Lecturers)</p>
+    </div>
+    <button type="button" class="btn btn-primary shadow-sm" onclick="openCreateModal()">
+        <i class="bi bi-person-plus-fill me-1"></i>Add New Account
+    </button>
+</div>
+
+<!-- Search Bar -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-3">
+        <form method="get" asp-action="Index" class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" value="@ViewBag.CurrentSearch" class="form-control" placeholder="Search by name or email..." />
+                </div>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-secondary">Search</button>
+                @if (!string.IsNullOrEmpty(ViewBag.CurrentSearch as string))
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary ms-1">Reset</a>
+                }
+            </div>
+            <div class="col-auto ms-auto">
+                <span class="text-muted small">Total: <strong>@(Model?.Count() ?? 0)</strong> accounts</span>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Accounts Table -->
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col" style="width: 80px;">ID</th>
+                    <th scope="col">Full Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Role</th>
+                    <th scope="col" class="text-end" style="width: 180px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="accountsTableBody">
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr id="account-row-@item.AccountID">
+                            <td><span class="badge bg-secondary-subtle text-secondary">#@item.AccountID</span></td>
+                            <td class="fw-semibold">@item.AccountName</td>
+                            <td><code>@item.AccountEmail</code></td>
+                            <td>
+                                @if (item.AccountRole == 1)
+                                {
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                                        <i class="bi bi-person-badge me-1"></i>Staff
+                                    </span>
+                                }
+                                else if (item.AccountRole == 2)
+                                {
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                                        <i class="bi bi-mortarboard me-1"></i>Lecturer
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Other</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-outline-primary btn-sm me-1" title="Edit"
+                                        onclick="openEditModal(@item.AccountID)">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm" title="Delete"
+                                        onclick="confirmDelete(@item.AccountID, '@Html.Raw(item.AccountName?.Replace("'", "\\'"))')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                            No accounts found.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- === MODAL: Create Account === -->
+<div class="modal fade" id="createAccountModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div id="createModalContent">
+                <!-- Loaded via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- === MODAL: Edit Account === -->
+<div class="modal fade" id="editAccountModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div id="editModalContent">
+                <!-- Loaded via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- === MODAL: Delete Confirm === -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-danger bg-opacity-10 rounded-3 p-2">
+                        <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+                    </div>
+                    <h6 class="modal-title fw-bold mb-0">Confirm Delete</h6>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="mb-0 small">Are you sure you want to delete account <strong id="deleteAccountName"></strong>? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteAccountForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger btn-sm px-3">
+                        <i class="bi bi-trash me-1"></i>Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // ===== CREATE MODAL =====
+        function openCreateModal() {
+            fetch('@Url.Action("CreateModal", "Accounts")')
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById('createModalContent').innerHTML = html;
+                    bindCreateForm();
+                    new bootstrap.Modal(document.getElementById('createAccountModal')).show();
+                });
+        }
+
+        function bindCreateForm() {
+            const form = document.getElementById('createAccountForm');
+            if (!form) return;
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                submitModalForm(form, 'createAccountModal', 'createModalContent', bindCreateForm);
+            });
+        }
+
+        // ===== EDIT MODAL =====
+        function openEditModal(id) {
+            fetch('@Url.Action("EditModal", "Accounts")/' + id)
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById('editModalContent').innerHTML = html;
+                    bindEditForm(id);
+                    new bootstrap.Modal(document.getElementById('editAccountModal')).show();
+                });
+        }
+
+        function bindEditForm(id) {
+            const form = document.getElementById('editAccountForm');
+            if (!form) return;
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                submitModalForm(form, 'editAccountModal', 'editModalContent', () => bindEditForm(id));
+            });
+        }
+
+        // ===== DELETE MODAL =====
+        function confirmDelete(id, name) {
+            document.getElementById('deleteAccountName').textContent = name;
+            const form = document.getElementById('deleteAccountForm');
+            form.action = '@Url.Action("DeleteAjax", "Accounts")/' + id;
+            form.onsubmit = function(e) {
+                e.preventDefault();
+                const fd = new FormData(form);
+                fetch(form.action, { method: 'POST', body: fd })
+                    .then(r => r.json())
+                    .then(data => {
+                        bootstrap.Modal.getInstance(document.getElementById('deleteAccountModal')).hide();
+                        if (data.success) {
+                            showToast(data.message, 'success');
+                            setTimeout(() => location.reload(), 900);
+                        } else {
+                            showToast(data.message, 'danger');
+                        }
+                    });
+            };
+            new bootstrap.Modal(document.getElementById('deleteAccountModal')).show();
+        }
+
+        // ===== SHARED MODAL SUBMIT =====
+        function submitModalForm(form, modalId, contentId, rebindFn) {
+            const fd = new FormData(form);
+            fetch(form.action, { method: 'POST', body: fd })
+                .then(r => r.json().catch(() => r.text().then(html => ({ __html: html }))))
+                .then(data => {
+                    if (data.__html) {
+                        // Validation errors returned as HTML
+                        document.getElementById(contentId).innerHTML = data.__html;
+                        rebindFn();
+                    } else if (data.success) {
+                        bootstrap.Modal.getInstance(document.getElementById(modalId)).hide();
+                        showToast(data.message, 'success');
+                        setTimeout(() => location.reload(), 900);
+                    } else {
+                        showToast(data.message || 'Operation failed.', 'danger');
+                    }
+                });
+        }
+
+        // ===== TOAST =====
+        function showToast(message, type) {
+            const id = 'toast-' + Date.now();
+            const html = `<div id="${id}" class="toast align-items-center text-bg-${type} border-0 show" role="alert" style="min-width:280px">
+                <div class="d-flex">
+                    <div class="toast-body fw-semibold">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>`;
+            let container = document.getElementById('toastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                container.style.zIndex = '9999';
+                document.body.appendChild(container);
+            }
+            container.insertAdjacentHTML('beforeend', html);
+            setTimeout(() => document.getElementById(id)?.remove(), 4000);
+        }
+    </script>
+}
